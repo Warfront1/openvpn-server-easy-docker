@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: 'Get Previous tag'
-      id: previoustag
-      uses: "WyriHaximus/github-action-get-previous-tag@v1"
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    - uses: oprypin/find-latest-tag@v1
+      id: previoustag  # The step ID to refer to later.
+      with:
+        repository: Warfront1/openvpn-server-easy-docker  # The repository to scan.
+        releases-only: true  # We know that all relevant tags have a GitHub release for them.
     - name: Get next minor version
       id: semver
       uses: 'WyriHaximus/github-action-next-semvers@v1'

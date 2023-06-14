@@ -1,0 +1,51 @@
+name: OpenVPN Server Easy Docker CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_container_and_upload_to_docker_hub:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Get current version
+      id: cv1
+      run: |
+        echo "current_version=$(cat .version)" >> $GITHUB_OUTPUT
+    - name: Get next minor version
+      id: semver
+      uses: 'WyriHaximus/github-action-next-semvers@v1'
+      with:
+        version: ${{ steps.cv1.outputs.current_version }}
+    - id: aar1
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: ${{ steps.semver.outputs.patch }}
+        prerelease: false
+        title: ${{ steps.semver.outputs.patch }}
+        files: |
+          LICENSE.txt
+          *.jar
+    - name: Log in to Docker Hub
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    - id: bp1
+      name: Build and Publish Docker Container
+      run: |
+        echo ${{ steps.aar1.outputs.automatic_releases_tag }}
+        export TAG=${{ steps.aar1.outputs.automatic_releases_tag }}
+        docker-compose build
+        export TAG=latest
+        docker-compose build
+        docker push warfront1osed/openvpn-server-easy:${{ steps.semver.outputs.patch }}
+        docker push warfront1osed/openvpn-server-easy:latest
+        echo ${{ steps.semver.outputs.patch }} > .version
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Increment version [skip ci]

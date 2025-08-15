@@ -39,10 +39,17 @@ cd /etc/openvpn/easy-rsa
 ./easyrsa gen-dh
 openvpn --genkey --secret /etc/openvpn/ta.key
 
+# Fetch the public IP for the SAN (from Amazon's check IP service)
+PUBIP="$(curl -fsS https://checkip.amazonaws.com | tr -d '\r\n')"
+if [ -z "$PUBIP" ]; then
+  echo "Error: could not determine public IP from Amazon check IP service." >&2
+  exit 1
+fi
+
 /usr/bin/expect <<EOD
 cd /etc/openvpn/easy-rsa
 set timeout 20
-spawn ./easyrsa sign-req server myservername
+spawn ./easyrsa --subject-alt-name=DNS:myservername,IP:${PUBIP} sign-req server myservername
 expect "Enter pass phrase for /etc/openvpn/easy-rsa/pki/private/ca.key:"
 send -- "$CA_KEY_PASSWORD"
 send -- "\r"

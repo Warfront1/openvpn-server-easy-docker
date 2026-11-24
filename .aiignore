@@ -1,0 +1,12 @@
+# Ignore everything by default
+*
+
+# Allow everything under src recursively
+!src/
+!src/**
+
+# Allow the README
+!README.md
+
+# Allow docker-compose.yaml
+!docker-compose.yaml

@@ -1,0 +1,17 @@
+version: '3.1'
+
+services:
+  openvpn_server_easy:
+    image: warfront1osed/openvpn-server-easy:${TAG}
+    build:
+      context: ./
+      dockerfile: ./src/main/docker/Dockerfile
+    ports:
+      - 1194:1194/udp
+    user: root
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ./do_not_share_client_credentials:/client_credentials/
